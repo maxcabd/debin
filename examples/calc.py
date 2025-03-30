@@ -1,7 +1,4 @@
-from debin import debin
-from dataclasses import dataclass, field
-from debin.primitives.string import nullstr
-
+from debin import *
 
 @debin
 class StringExample:
@@ -17,7 +14,7 @@ def main():
     ])
 
     example = StringExample().read(buffer)
-    print(example)
+   
 
 
 if __name__ == "__main__":

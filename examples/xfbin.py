@@ -2,15 +2,6 @@ from typing import List
 
 from debin import *
 from debin.helpers import until_eof
-import json
-import sys, os
-
-# Add the *Projects/Python* folder to sys.path (not serdepy itself)
-sys.path.append(os.path.abspath("C:\\Users\\User\\Desktop\\Projects\\Python"))
-
-# Now import from the 'serdepy' package
-from serdepy import serde
-
 
 
 
@@ -90,14 +81,12 @@ class XfbinFile:
 
 
 def main():
-    with open("characode.bin.xfbin", "rb") as f:
+    with open("sample.xfbin", "rb") as f:
         buffer = f.read()
 
     xfbin = XfbinFile().read_be(buffer)
 
 
-
-    print(json.dumps(xfbin.__dict__))
 
 
 if __name__ == "__main__":

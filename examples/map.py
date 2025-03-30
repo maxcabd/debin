@@ -1,7 +1,7 @@
 from typing import List
-from debin import debin
-from dataclasses import dataclass, field
-from debin.primitives.numerical import uint8, uint16, uint32
+from debin import *
+
+
 
 def bytes_to_trimmed_string(x: List[uint8]) -> str:
     """Convert a byte array to a UTF-8 string and trim trailing null bytes."""
@@ -24,7 +24,6 @@ def main():
 
     characode = Characode().read(buffer)
 
-    print(characode.entries)
 
 
 if __name__ == "__main__":

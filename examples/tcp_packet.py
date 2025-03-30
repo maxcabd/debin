@@ -1,7 +1,7 @@
-from debin import debin
-from dataclasses import dataclass, field
 from typing import List
-from debin.primitives.numerical import uint8, uint16, uint32
+
+from debin import *
+from debin.helpers import until_eof
 
 
 @debin
@@ -37,10 +37,7 @@ def main():
 
 
     packet = TCPPacket().read(buffer)
-    print(packet)
-
-
-
+  
 
 
 if __name__ == "__main__":

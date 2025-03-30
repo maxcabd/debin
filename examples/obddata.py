@@ -36,7 +36,7 @@ def main():
     ])
 
     obd_packet = OBDPacket().read(buffer)
-    print(obd_packet)
+    
 
 
 if __name__ == "__main__":
