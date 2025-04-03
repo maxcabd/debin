@@ -32,6 +32,12 @@ def read_field(self, field: Field, buffer: bytearray, offset: int, parser: Binar
         _, offset = map_dir(field, buffer, offset, parser.endian, parser, this)
         return offset
 
+    if 'if' in field.metadata:
+        value, offset = if_dir(field, buffer, offset, parser, this)
+        if value is not object():  # Only set attribute if not our sentinel
+            setattr(self, field.name, value)
+        return offset
+
     # Skip `calc` fields for now (handled later)
     if "calc" in field.metadata:
         return offset

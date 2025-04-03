@@ -1,7 +1,9 @@
-from typing import get_origin, get_args
-from dataclasses import Field
+from typing import Any, get_origin, get_args
+from dataclasses import Field, is_dataclass
 from debin.core.binary_parser import BinaryParser
 from debin.utils.state import This
+from debin.utils.endian import read_from_endian
+from debin.utils.size import calc_dataclass_size
 
 def default_dir(field: Field, buffer: bytearray, offset: int, default_endian: str, parser):
     pass
@@ -21,18 +23,28 @@ def calc_dir(field: Field, buffer: bytearray, offset: int, default_endian: str, 
 
     return value, offset
 
-def if_dir(field: Field, offset: int, this: This):
-    expression = field.metadata.get('if')
-
-    if expression is None:
-        raise ValueError('The "if" directive requires an expression to evaluate.')
+def if_dir(field: Field, buffer: bytearray, offset: int, parser: BinaryParser, this: This) -> tuple[Any, int]:
+    condition = field.metadata.get('if')
     
-    context = vars(this)
+    if condition is None:
+        raise ValueError('Missing "if" condition')
+    
 
-    # If condition is true, parse, else don't parse.
-    pass
-
-
+    if callable(condition):
+        should_parse = condition(this)
+    else:
+        context = vars(this)
+        should_parse = bool(eval(condition, {}, context))
+    
+    if should_parse:
+        if hasattr(field.type, '_debin_repr'):
+            repr_type = field.type._debin_repr
+            value, offset = parser.parse(buffer, offset, repr_type)
+            return field.type(value), offset
+        return parser.parse(buffer, offset, field.type)
+    else:
+        # Don't set the field at all when condition fails
+        return None, offset  # Return sentinel object
 
 def map_dir(field: Field, buffer: bytearray, offset: int, default_endian: str, parser: BinaryParser, this: This):
     """

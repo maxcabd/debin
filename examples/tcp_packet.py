@@ -15,23 +15,6 @@ class Flags(IntFlag):
     ECE = 0x40    # 64
     CWR = 0x80    # 128
 
-    def __str__(self):
-        return self.name  # Use the auto-generated name
-
-   
-
-
-
-class Flag2(IntFlag):
-    FIN = 0x01    # 1
-    SYN = 0x02    # 2
-    RST = 0x04    # 4
-    PSH = 0x08    # 8
-    ACK = 0x10    # 16
-    URG = 0x20    # 32
-    ECE = 0x40    # 64
-    CWR = 0x80    # 128
-
 
 @debin
 class TCPHeader:
@@ -51,6 +34,7 @@ class TCPPacket:
 
 def main():
     # Example TCP packet buffer
+
     buffer = bytearray([
         # Header (20 bytes)
         0x30, 0x39,  # Source Port (12345)
@@ -66,9 +50,7 @@ def main():
 
 
     packet = TCPPacket().read(buffer)
-    print(packet)
-   
-    
 
+   
 if __name__ == "__main__":
     main()
