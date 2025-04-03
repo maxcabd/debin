@@ -6,7 +6,7 @@ from debin.utils.state import This
 def default_dir(field: Field, buffer: bytearray, offset: int, default_endian: str, parser):
     pass
 
-def calc_dir(field: Field, buffer: bytearray, offset: int, default_endian: str, this):
+def calc_dir(field: Field, buffer: bytearray, offset: int, default_endian: str, this: This):
     expression = field.metadata.get('calc')
 
     if expression is None:
@@ -20,6 +20,19 @@ def calc_dir(field: Field, buffer: bytearray, offset: int, default_endian: str, 
     setattr(this, field.name, value)
 
     return value, offset
+
+def if_dir(field: Field, offset: int, this: This):
+    expression = field.metadata.get('if')
+
+    if expression is None:
+        raise ValueError('The "if" directive requires an expression to evaluate.')
+    
+    context = vars(this)
+
+    # If condition is true, parse, else don't parse.
+    pass
+
+
 
 def map_dir(field: Field, buffer: bytearray, offset: int, default_endian: str, parser: BinaryParser, this: This):
     """
@@ -86,15 +99,12 @@ def parse_with_dir(field: Field, buffer: bytearray, offset: int, default_endian:
     else:
         raise TypeError(f"The 'parse_with' directive can only be used with List fields, not {field_type}.")
 
-    # Start the buffer at the current offset
-    #buffer = buffer[offset:]
-    value, new_offset = parse_func(buffer, offset, parser, element_type)
 
-   
-    
+    value, new_offset = parse_func(buffer, offset, parser, element_type)
 
 
     return value, new_offset
+
 
 # Register metadata directives
 METADATA_DIRECTIVES = {

@@ -1,18 +1,18 @@
 from typing import Any, Type, get_origin, get_args
 from dataclasses import fields, is_dataclass
 
+
 from debin.primitives.numerical import *
 from debin.primitives.string import *
 from debin.protocol import DebinInstance
+from debin.utils.enum import is_debin_enum
 
 
 
 
 def calc_primitive_type_size(field_type: Type[Any]) -> int:
     """Get the size of a primitive field type."""
-    """if is_dataclass(field_type):
-        return calc_dataclass_size(field_type)"""
-
+   
     if isinstance(field_type, type) and issubclass(field_type, BasePrimitiveType):
         return field_type.byte_size()
 
@@ -44,7 +44,10 @@ def calc_dataclass_size(instance: DebinInstance) -> int:
             total_size = (total_size + align_mask) & ~align_mask
 
 
-
+        if is_debin_enum(field_type):
+            repr_type = field_type._debin_repr
+            field_size = calc_primitive_type_size(repr_type)
+            total_size += field_size
 
         if get_origin(field_type) is list:  # If it's a list
             element_type = get_args(field_type)[0]

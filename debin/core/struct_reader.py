@@ -1,12 +1,14 @@
 
 from typing import Any, List, get_args, get_origin
 from dataclasses import Field, is_dataclass
+from enum import IntEnum, IntFlag
 
 from debin.primitives.numerical import *
 from debin.core.binary_parser import BinaryParser
 from debin.utils.size import *
 from debin.utils.endian import convert_endian_str, read_from_endian
 from debin.utils.state import This
+from debin.utils.enum import is_debin_enum
 from debin.decorators.directives import *
 from debin.decorators.meta import debin_metadata
 
@@ -37,6 +39,26 @@ def read_field(self, field: Field, buffer: bytearray, offset: int, parser: Binar
     field_type = field.type
     field_endian = convert_endian_str(field.metadata.get("endian", parser.endian))
     cur_offset: int = offset  # Save for debugging
+
+    if is_debin_enum(field_type):
+        if not hasattr(field_type, '_debin_repr'):
+            raise ValueError(f"Enum {field_type.__name__} missing repr - did you use @debin(repr=...)?")
+        
+        repr_type = field_type._debin_repr
+       
+        if repr_type is None:
+            raise ValueError(f"Enum {field_type.__name__} has None as representation type")
+            
+        value, offset = parser.parse(buffer, offset, repr_type)
+
+         # Manually decompose the value into individual flags
+        flag_value = field_type(0)  # Start with empty flag
+        for flag in field_type:
+            if flag.value & value:
+                flag_value |= flag  # Add each matching flag
+      
+        setattr(self, field.name, flag_value)
+        return offset
 
     # Handle the `parse_with` directive
     if "parse_with" in field.metadata:

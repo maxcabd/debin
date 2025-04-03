@@ -1,7 +1,36 @@
 from typing import List
 
 from debin import *
-from debin.helpers import until_eof
+from enum import IntFlag, IntEnum
+
+
+@debin(repr=uint8)
+class Flags(IntFlag):
+    FIN = 0x01    # 1
+    SYN = 0x02    # 2
+    RST = 0x04    # 4
+    PSH = 0x08    # 8
+    ACK = 0x10    # 16
+    URG = 0x20    # 32
+    ECE = 0x40    # 64
+    CWR = 0x80    # 128
+
+    def __str__(self):
+        return self.name  # Use the auto-generated name
+
+   
+
+
+
+class Flag2(IntFlag):
+    FIN = 0x01    # 1
+    SYN = 0x02    # 2
+    RST = 0x04    # 4
+    PSH = 0x08    # 8
+    ACK = 0x10    # 16
+    URG = 0x20    # 32
+    ECE = 0x40    # 64
+    CWR = 0x80    # 128
 
 
 @debin
@@ -10,7 +39,7 @@ class TCPHeader:
     destination_port: uint16
     sequence_number: uint32
     acknowledgment_number: uint32
-    flags: uint8
+    flags: Flags = field(metadata={"repr": True})
     window_size: uint16
 
 @debin
@@ -37,8 +66,9 @@ def main():
 
 
     packet = TCPPacket().read(buffer)
-  
-
+    print(packet)
+   
+    
 
 if __name__ == "__main__":
     main()

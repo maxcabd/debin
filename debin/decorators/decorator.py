@@ -1,6 +1,6 @@
 from dataclasses import Field, dataclass, fields, field
 from typing import Any, Type, Optional
-
+from enum import IntEnum, IntFlag
 
 from debin.error.exceptions import MagicError
 
@@ -17,22 +17,22 @@ from debin.decorators.meta import debin_metadata
 from debin.decorators.directives import *
 
 
-def debin(*args, endian: Optional[str] = "little", magic: Optional[str] = None):
+def debin(*args, endian: Optional[str] = "little", magic: Optional[str] = None, repr: Optional[Type] = None):
     """Decorator to add read and write methods to a dataclass"""
-
     def decorator(cls) -> Type:
+        
         cls = dataclass(init=False)(cls)
 
-        cls._endianness = endian  # Store the default endianness of the dataclass
-        cls.read = _create_read_method(cls, convert_endian_str(endian), magic)  # Default dataclass read method
+        cls._endianness = endian
+        cls._debin_repr = repr
+        cls.read = _create_read_method(cls, convert_endian_str(endian), magic)
         cls.read_le = _create_read_method(cls, "<", magic)  # Little-endian
         cls.read_be = _create_read_method(cls, ">", magic)  # Big-endian
 
-        # Initialize metadata for the class
+        
         debin_metadata[cls] = set()
 
         if magic is not None:
-            # Add the magic field and track it in the metadata
             setattr(cls, "magic", field(default=magic, metadata={"ignore": True}))
             debin_metadata[cls].add("magic")
 
