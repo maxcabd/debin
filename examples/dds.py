@@ -92,17 +92,10 @@ class DDSFile:
 
 
 def main():
-
-    path = "C:\\Users\\User\\Desktop\\UNSC\\DLC Packs Checklist\\Akatsuki Cloakless Pack 1\\Pain (without Cloak)\\2peabod1 Textures\\2peaeye.dds"
-
-    with open(path, "rb") as file:
+    with open("sample.dds", "rb") as file:
         buffer = file.read()
-
     
     dds = DDSFile().read_le(buffer)
-
-    #print(dds)
-
 
 
 if __name__ == "__main__":

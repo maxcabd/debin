@@ -25,26 +25,47 @@ def calc_dir(field: Field, buffer: bytearray, offset: int, default_endian: str, 
 
 def if_dir(field: Field, buffer: bytearray, offset: int, parser: BinaryParser, this: This) -> tuple[Any, int]:
     condition = field.metadata.get('if')
-    
     if condition is None:
         raise ValueError('The "if" directive requires a condition to evaluate.')
-    
 
+    # Evaluate condition
     if callable(condition):
         should_parse = condition(this)
     else:
         context = vars(this)
         should_parse = bool(eval(condition, {}, context))
-    
-    if should_parse:
-        if hasattr(field.type, '_debin_repr'):
-            repr_type = field.type._debin_repr
-            value, offset = parser.parse(buffer, offset, repr_type)
-            return field.type(value), offset
-        return parser.parse(buffer, offset, field.type)
-    else:
-        # Don't set the field at all when condition fails
-        return None, offset  # Return sentinel object
+
+    if not should_parse:
+        return None, offset  # Skip parsing if condition fails
+
+    field_type = field.type
+
+
+    if get_origin(field_type) is list:
+        element_type = get_args(field_type)[0]
+        count = field.metadata.get("count", 1)
+        
+        # Resolve count
+        if isinstance(count, str):
+            count = getattr(this, count, 1)
+        elif callable(count):
+            count = count(this)
+
+
+        values = [] * count
+        for _ in range(count):
+            if is_dataclass(element_type):
+                endian = field.metadata.get("endian", parser.endian)
+                parsed = read_from_endian(element_type, endian, buffer, offset)
+                offset += calc_dataclass_size(parsed)
+            else:
+                parsed, offset = parser.parse(buffer, offset, element_type)
+            values.append(parsed)
+
+        return values, offset
+
+    # Handle non-list types
+    return parser.parse(buffer, offset, field_type)
 
 def map_dir(field: Field, buffer: bytearray, offset: int, default_endian: str, parser: BinaryParser, this: This):
     """

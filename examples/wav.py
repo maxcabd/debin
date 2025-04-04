@@ -7,28 +7,39 @@ from debin.helpers import until_eof
 @debin(magic="RIFF")
 class RiffHeader:
     chunk_size: uint32
-    form: List[uint8] = field(metadata={"count": 4})
+    format: List[uint8] = field(metadata={"count": 4})
+
+@debin
+class ChunkHeader:
+    chunk_id: List[uint8] = field(metadata={"count": 4})
+    chunk_size: uint32
 
 @debin(magic="fmt ")
-class FMTChunk:
-    sub_chunk_size: uint32
+class FmtChunk:
+    chunk_header: ChunkHeader
     audio_format: uint16
     num_channels: uint16
     sample_rate: uint32
     byte_rate: uint32
     block_align: uint16
     bits_per_sample: uint16
-
+    extra_params: List[uint8] = field(
+        metadata={
+            "if": lambda self: self.chunk_header.chunk_size > 16,
+            "count": "chunk_header.chunk_size - 16"
+        }
+    )
 @debin(magic="data")
 class DataChunk:
-    sub_chunk_size: uint32
-    samples: List[uint8] = field(metadata={"count": "sub_chunk_size"})
+    chunk_header: ChunkHeader
+    samples: List[uint8] = field(metadata={"count": "chunk_header.chunk_size"})
+
 
 
 @debin
 class WAVFile:
     riff: RiffHeader
-    fmt: FMTChunk
+    fmt: FmtChunk
     data: DataChunk
 
     #total_samples: int = field(metadata={"ignore": True, "calc": "data.subchunk_size // fmt.block_align"})

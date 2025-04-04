@@ -42,9 +42,9 @@ def main():
     with open(path, "rb") as file:
         buffer = file.read()
 
-    #bmp = BMPFile().read_le(buffer)
+    bmp = BMPFile().read_le(buffer)
 
-    #print(bmp)
+    print(bmp)
 
     
 
