@@ -7,7 +7,7 @@ from debin.helpers import until_eof
 @debin(magic="RIFF")
 class RiffHeader:
     chunk_size: uint32
-    format: List[uint8] = field(metadata={"count": 4})
+    form: List[uint8] = field(metadata={"count": 4})
 
 @debin(magic="fmt ")
 class FMTChunk:
@@ -31,15 +31,16 @@ class WAVFile:
     fmt: FMTChunk
     data: DataChunk
 
-    total_samples: int = field(metadata={"ignore": True, "calc": "data.subchunk_size // fmt.block_align"})
+    #total_samples: int = field(metadata={"ignore": True, "calc": "data.subchunk_size // fmt.block_align"})
 
 
 # 🚀 Usage Example
 def main():
-    with open("sample.wav", "rb") as f:
+    path = "C:\\Users\\User\\Documents\\MW2R\\Factions\\Shadow Company\\General Shepherd\\Audio Samples\\4.wav"
+    with open(path, "rb") as f:
         buffer = bytearray(f.read())
 
-    wav = WAVFile().read_le(buffer)
+    wav = WAVFile().read_be(buffer)
 
   
 
