@@ -6,18 +6,26 @@ from debin.primitives.numerical import *
 from debin.primitives.string import *
 from debin.protocol import DebinInstance
 from debin.utils.enum import is_debin_enum
+from functools import lru_cache
 
 
 
 
+
+
+@lru_cache(maxsize=256)
 def calc_primitive_type_size(field_type: Type[Any]) -> int:
-    """Get the size of a primitive field type."""
-   
+    """Calculate the size of a primitive type"""
+    if field_type is uint8: return 1
+    if field_type is uint16: return 2
+    if field_type is uint32: return 4
+    if field_type is uint64: return 8
+    if field_type is nullstr: return 1
+    
+
     if isinstance(field_type, type) and issubclass(field_type, BasePrimitiveType):
         return field_type.byte_size()
 
-    if field_type is nullstr:
-        return 1  # Size is dynamic, but we know the null terminator is 1 byte
 
     if get_origin(field_type) is list:
         element_type = get_args(field_type)[0]
@@ -27,11 +35,10 @@ def calc_primitive_type_size(field_type: Type[Any]) -> int:
 
     raise TypeError(f"Unsupported field type: {field_type}")
 
-
 def calc_dataclass_size(instance: DebinInstance) -> int:
     """Calculate the total size of a dataclass instance based on its fields and metadata."""
 
-    print(f"Calculating size for {instance.__class__.__name__}")
+    #print(f"Calculating size for {instance.__class__.__name__}")
     total_size = 0
 
     for field in fields(instance):
@@ -51,12 +58,12 @@ def calc_dataclass_size(instance: DebinInstance) -> int:
 
         if get_origin(field_type) is list:  # If it's a list
             element_type = get_args(field_type)[0]
-            values = getattr(instance, field.name, [])
+            values = getattr(instance, field.name, ())
 
             if element_type is nullstr:
                 # Sum the actual lengths of strings plus their null terminators
-                field_size = sum(len(str(value)) for value in values)
-                print(f"    String list '{field.name}' contains {len(values)} strings, total size: {field_size}")
+                field_size = sum(map(len, map(str, values)))
+                #print(f"    String list '{field.name}' contains {len(values)} strings, total size: {field_size}")
                 total_size+= field_size
 
             if is_dataclass(element_type):
@@ -65,7 +72,7 @@ def calc_dataclass_size(instance: DebinInstance) -> int:
                 total_size+= field_size
             else:
                 field_size = len(values) * calc_primitive_type_size(element_type)
-                print(f"    Primitive list '{field.name}' contains {len(values)} elements of size {calc_primitive_type_size(element_type)}, total: {field_size}")
+                #print(f"    Primitive list '{field.name}' contains {len(values)} elements of size {calc_primitive_type_size(element_type)}, total: {field_size}")
                 total_size+= field_size
 
         elif is_dataclass(field_type):  # If it's a nested dataclass
@@ -76,9 +83,7 @@ def calc_dataclass_size(instance: DebinInstance) -> int:
         else:  # Normal primitive type
             field_size = calc_primitive_type_size(field_type)
             total_size+= field_size
-            print(f"  Field {field.name}: {field_size} bytes (at offset {total_size})")
-
-
+            #print(f"  Field {field.name}: {field_size} bytes (at offset {total_size})")
 
 
         if 'pad_after' in field.metadata:
@@ -89,5 +94,5 @@ def calc_dataclass_size(instance: DebinInstance) -> int:
             align_mask = align_after - 1
             total_size = (total_size + align_mask) & ~align_mask
 
-    print(f"Total size for {instance.__class__.__name__}: {total_size}")
+    #print(f"Total size for {instance.__class__.__name__}: {total_size}")
     return total_size

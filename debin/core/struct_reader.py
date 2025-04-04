@@ -15,7 +15,6 @@ from debin.decorators.meta import debin_metadata
 
 
 
-
 def read_field(self, field: Field, buffer: bytearray, offset: int, parser: BinaryParser) -> int:
     """Helper function to read a field from the buffer and update the offset."""
 

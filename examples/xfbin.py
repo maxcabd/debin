@@ -76,9 +76,22 @@ class XfbinFile:
     index: XfbinIndex
     chunks: List[XfbinChunk] = field(metadata={"parse_with": until_eof})
 
+import time
+from functools import wraps
 
 
+def timeit(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        start = time.perf_counter()
+        result = func(*args, **kwargs)
+        elapsed = time.perf_counter() - start
+        print(f"{func.__name__} took {elapsed:.6f} seconds")
+        return result
+    return wrapper
 
+
+@timeit
 def main():
     path = "C:\\Users\\User\\Desktop\\UNSC\\DLC Packs Checklist\\Patreon Subscriber Bonus Pack 2\\Rin (Nurse)\\4rinbod1.xfbin"
     with open(path, "rb") as f:
