@@ -27,7 +27,7 @@ def if_dir(field: Field, buffer: bytearray, offset: int, parser: BinaryParser, t
     condition = field.metadata.get('if')
     
     if condition is None:
-        raise ValueError('Missing "if" condition')
+        raise ValueError('The "if" directive requires a condition to evaluate.')
     
 
     if callable(condition):
