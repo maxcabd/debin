@@ -58,11 +58,14 @@ def _create_read_method(cls, default_endian: str, magic: Optional[str]) -> Any:
         from debin.core.struct_reader import read_field
         
         if magic is not None:
-            magic_bytes = buffer[offset: offset + 4]
+            magic_len = len(magic)
+            magic_bytes = buffer[offset: offset + magic_len]
+
             self.magic = magic_bytes.decode("ascii")
+            
             if self.magic != magic:
                 raise MagicError(magic, self.magic)
-            offset += 4  # Move the cursor
+            offset += magic_len
        
 
         for field in fields(cls):

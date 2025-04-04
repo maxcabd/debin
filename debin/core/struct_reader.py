@@ -41,7 +41,7 @@ def read_field(self, field: Field, buffer: bytearray, offset: int, parser: Binar
     # Skip `calc` fields for now (handled later)
     if "calc" in field.metadata:
         return offset
-
+  
     field_type = field.type
     field_endian = convert_endian_str(field.metadata.get("endian", parser.endian))
     cur_offset: int = offset  # Save for debugging
@@ -105,7 +105,8 @@ def read_field(self, field: Field, buffer: bytearray, offset: int, parser: Binar
 
         # Account for 'magic' field if added by decorator
         if field_type in debin_metadata and "magic" in debin_metadata[field_type]:
-            offset += 4  # Assuming magic size is 4 bytes
+            magic = field_type.__dict__.get("magic").default # Extract the magic str
+            offset += len(magic)
 
         offset += calc_dataclass_size(parsed)
 

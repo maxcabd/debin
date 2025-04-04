@@ -63,9 +63,8 @@ class XfbinIndex:
 
 
 
-@debin
+@debin(magic="NUCC")
 class XfbinHeader:
-    magic: uint32
     version: uint32
     encrypted: uint16
     padding: List[uint8] = field(metadata={"count": 6})
@@ -81,7 +80,8 @@ class XfbinFile:
 
 
 def main():
-    with open("sample.xfbin", "rb") as f:
+    path = "C:\\Users\\User\\Desktop\\UNSC\\DLC Packs Checklist\\Patreon Subscriber Bonus Pack 2\\Rin (Nurse)\\4rinbod1.xfbin"
+    with open(path, "rb") as f:
         buffer = f.read()
 
     xfbin = XfbinFile().read_be(buffer)
