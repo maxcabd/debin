@@ -51,6 +51,7 @@ def calc_dataclass_size(instance: DebinInstance) -> int:
             total_size = (total_size + align_mask) & ~align_mask
 
 
+    
         if is_debin_enum(field_type):
             repr_type = field_type._debin_repr
             field_size = calc_primitive_type_size(repr_type)
@@ -61,29 +62,26 @@ def calc_dataclass_size(instance: DebinInstance) -> int:
             values = getattr(instance, field.name, ())
 
             if element_type is nullstr:
-                # Sum the actual lengths of strings plus their null terminators
                 field_size = sum(map(len, map(str, values)))
-                #print(f"    String list '{field.name}' contains {len(values)} strings, total size: {field_size}")
-                total_size+= field_size
+                total_size += field_size
 
             if is_dataclass(element_type):
-                # Sum up the size of each nested dataclass instance
                 field_size = sum(calc_dataclass_size(item) for item in values)
-                total_size+= field_size
+                total_size += field_size
             else:
                 field_size = len(values) * calc_primitive_type_size(element_type)
-                #print(f"    Primitive list '{field.name}' contains {len(values)} elements of size {calc_primitive_type_size(element_type)}, total: {field_size}")
-                total_size+= field_size
+                total_size += field_size
 
         elif is_dataclass(field_type):  # If it's a nested dataclass
             nested_instance = getattr(instance, field.name, None)
             if nested_instance is not None:
                 field_size = calc_dataclass_size(nested_instance)
-                total_size+= field_size
+                total_size += field_size
+
         else:  # Normal primitive type
             field_size = calc_primitive_type_size(field_type)
-            total_size+= field_size
-            #print(f"  Field {field.name}: {field_size} bytes (at offset {total_size})")
+            total_size += field_size
+          
 
 
         if 'pad_after' in field.metadata:
@@ -94,5 +92,4 @@ def calc_dataclass_size(instance: DebinInstance) -> int:
             align_mask = align_after - 1
             total_size = (total_size + align_mask) & ~align_mask
 
-    #print(f"Total size for {instance.__class__.__name__}: {total_size}")
     return total_size

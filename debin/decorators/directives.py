@@ -1,9 +1,12 @@
-from typing import Any, get_origin, get_args
+from typing import Any, Tuple, get_origin, get_args
 from dataclasses import Field, is_dataclass
 from debin.core.binary_parser import BinaryParser
+from debin.core.io import SeekFrom, SeekSpec
 from debin.utils.state import This
 from debin.utils.endian import read_from_endian
 from debin.utils.size import calc_dataclass_size
+
+
 
 def default_dir(field: Field, buffer: bytearray, offset: int, default_endian: str, parser):
     pass
@@ -44,6 +47,7 @@ def if_dir(field: Field, buffer: bytearray, offset: int, parser: BinaryParser, t
     if get_origin(field_type) is list:
         element_type = get_args(field_type)[0]
         count = field.metadata.get("count", 1)
+        
         
         # Resolve count
         if isinstance(count, str):
@@ -110,6 +114,65 @@ def align_after_dir(field, buffer, offset, default_endian):
     alignment = field.metadata.get('align_after', 1)
     padding = (alignment - (offset % alignment)) % alignment
     return None, offset + padding
+
+
+
+def seek_dir(field: Field, buffer: bytearray, offset: int, default_endian: str, 
+             parser: BinaryParser, this: This) -> Tuple[Any, int]:
+    """Seek to a specific position before reading the field and parse it."""
+    seek_spec = field.metadata.get('seek')
+    seek_before = field.metadata.get('seek_before')
+    
+    # Determine new offset
+    new_offset = offset
+    if seek_spec is not None:
+        if isinstance(seek_spec, str):
+            new_offset = getattr(this, seek_spec)
+        else:
+            new_offset = seek_spec
+    elif seek_before is not None:
+        if isinstance(seek_before, int):
+            new_offset = seek_before
+        elif isinstance(seek_before, tuple) and len(seek_before) == 2:
+            origin, rel_offset = seek_before
+            if origin == SeekFrom.START:
+                new_offset = rel_offset
+            elif origin == SeekFrom.CURRENT:
+                new_offset = offset + rel_offset
+            elif origin == SeekFrom.END:
+                new_offset = len(buffer) + rel_offset
+            else:
+                raise ValueError(f"Invalid seek origin: {origin}")
+        elif isinstance(seek_before, str):
+            new_offset = getattr(this, seek_before)
+        elif callable(seek_before):
+            new_offset = seek_before(buffer, offset)
+        else:
+            raise ValueError(f"Invalid seek_before specification: {seek_before}")
+    
+    print(f"Seeked to new offset: {new_offset}")
+    
+    # Now parse the field at the new offset
+    field_type = field.type
+    if get_origin(field_type) is list:
+        element_type = get_args(field_type)[0]
+        count = field.metadata.get("count", 1)
+        
+        if isinstance(count, str):
+            count = getattr(this.obj, count, 1)
+        elif callable(count):
+            count = count(this.obj)
+        
+        values = []
+        for _ in range(count):
+            parsed, new_offset = parser.parse(buffer, new_offset, element_type)
+            values.append(parsed)
+        
+        return values, new_offset
+    else:
+        parsed, new_offset = parser.parse(buffer, new_offset, field_type)
+        return parsed, new_offset
+
 
 def ignore_dir():
     """Ignore the field and do not parse it."""

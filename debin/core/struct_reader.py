@@ -28,6 +28,13 @@ def read_field(self, field: Field, buffer: bytearray, offset: int, parser: Binar
     field_metadata = field.metadata
     field_name = field.name
 
+
+    # Handle the seek directive first
+    if 'seek' in field.metadata or 'seek_before' in field.metadata:
+        value, offset = seek_dir(field, buffer, offset, parser.endian, parser, this)
+        object.__setattr__(self, field_name, value)
+        return offset
+
     # Handle directives in order of likely frequency
     if 'if' in field_metadata:
         value, offset = if_dir(field, buffer, offset, parser, this)

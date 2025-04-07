@@ -1,4 +1,6 @@
 
+
+
 class nullstr:
     """Represents a null-terminated ASCII string."""
 
