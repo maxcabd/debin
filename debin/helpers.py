@@ -59,3 +59,29 @@ def until_with(condition: Callable[[T], bool]):
         return values, cur_offset
 
     return parser
+
+
+
+def until_exclusive(condition: Callable[[T], bool]):
+    def parser(buffer: bytes, offset: int, parser: BinaryParser, cls: Type[T]) -> tuple[List[DebinInstance], int]:
+        values: List[DebinInstance] = []
+        cur_offset = offset
+
+        while True:
+            if is_dataclass(cls):
+                parsed = read_from_endian(cls, parser.endian, buffer, cur_offset)
+                if parsed is None:
+                    break
+                
+                if condition(parsed):
+                    break
+                values.append(parsed)
+                cur_offset += calc_dataclass_size(parsed)
+
+                
+            else:
+                raise ValueError(f"{cls} is not a dataclass")
+
+        return values, cur_offset
+
+    return parser
