@@ -37,9 +37,7 @@ class BMPFile:
 
 
 def main():
-    path = "C:\\Users\\User\\Documents\\Zap.bmp"
-
-    with open(path, "rb") as file:
+    with open("sample.bmp", "rb") as file:
         buffer = file.read()
 
     bmp = BMPFile().read_le(buffer)

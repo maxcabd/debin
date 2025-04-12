@@ -1,6 +1,6 @@
 from typing import List
 
-
+from debin import uint8, uint16, uint32
 from debin import *
 from debin.helpers import until_eof
 
@@ -42,13 +42,11 @@ class WAVFile:
     fmt: FmtChunk
     data: DataChunk
 
-    #total_samples: int = field(metadata={"ignore": True, "calc": "data.subchunk_size // fmt.block_align"})
+    total_samples: int = field(metadata={"ignore": True, "calc": "data.subchunk_size // fmt.block_align"})
 
 
-# 🚀 Usage Example
 def main():
-    path = "C:\\Users\\User\\Documents\\MW2R\\Factions\\Shadow Company\\General Shepherd\\Audio Samples\\4.wav"
-    with open(path, "rb") as f:
+    with open("sample.wav", "rb") as f:
         buffer = bytearray(f.read())
 
     wav = WAVFile().read_be(buffer)

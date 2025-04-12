@@ -49,6 +49,7 @@ def _create_read_method(cls, default_endian: str, magic: Optional[str]) -> Any:
 
     # Set the endian based on the read method
     cls._endianness = convert_endian_str(default_endian)
+    print(cls._endianness)
 
 
     parser = BinaryParser(cls._endianness)

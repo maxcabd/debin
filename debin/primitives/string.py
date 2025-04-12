@@ -1,11 +1,11 @@
-
+from typing import Tuple
 
 
 class nullstr:
     """Represents a null-terminated ASCII string."""
 
     @classmethod
-    def read(cls, buffer: bytearray, offset: int) -> tuple[str, int]:
+    def read(cls, buffer: bytearray, offset: int) -> Tuple[str, int]:
         """Read a null-terminated string from the buffer."""
         string_bytes = bytearray()
         while buffer[offset] != 0:  # Read until null terminator
@@ -30,12 +30,14 @@ class nullwidestr:
     """Represents a null-terminated wide string (UTF-16)."""
 
     @classmethod
-    def read(cls, buffer: bytearray, offset: int, endian: str = "<") -> tuple[str, int]:
+    def read(cls, buffer: bytearray, offset: int, endian: str = "<") -> Tuple[str, int]:
         """
         Read a null-terminated wide string from the buffer.
         :param endian: Byte order for UTF-16 ("<" for little-endian, ">" for big-endian).
         """
         string_bytes = bytearray()
+
+
         while True:
             # Read 2 bytes (UTF-16 character)
             char_bytes = buffer[offset:offset + 2]
@@ -51,5 +53,6 @@ class nullwidestr:
     def write(cls, buffer: bytearray, offset: int, value: str) -> int:
         """Write a null-terminated wide string to the buffer."""
         string_bytes = value.encode("utf-16") + b"\x00\x00"  # Encode string and add null terminator (2 bytes)
+        
         buffer[offset:offset + len(string_bytes)] = string_bytes
         return offset + len(string_bytes)

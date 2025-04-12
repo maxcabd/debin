@@ -7,6 +7,9 @@ from debin.utils.size import calc_dataclass_size
 from debin.utils.endian import read_from_endian
 from debin.protocol import DebinInstance, T
 
+import struct
+
+
 
 
 
@@ -85,3 +88,21 @@ def until_exclusive(condition: Callable[[T], bool]):
         return values, cur_offset
 
     return parser
+
+
+
+def read_u24(buffer: bytes, offset: int, parser: BinaryParser, element_type: Type) -> tuple[int, int]:
+    """
+    Reads a single 24-bit unsigned integer (u24) from the given buffer starting at the offset.
+    Returns the parsed u24 value and the new offset.
+
+    """
+
+    endian: str = parser.endian
+    
+  
+    
+    value = struct.unpack(f"{endian}i", buffer[offset:offset+3] + b'\x00')[0]
+    
+    
+    return value, offset + 3

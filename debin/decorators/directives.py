@@ -150,7 +150,6 @@ def seek_dir(field: Field, buffer: bytearray, offset: int, default_endian: str,
         else:
             raise ValueError(f"Invalid seek_before specification: {seek_before}")
     
-    print(f"Seeked to new offset: {new_offset}")
     
     # Now parse the field at the new offset
     field_type = field.type
@@ -190,6 +189,7 @@ def parse_with_dir(field: Field, buffer: bytearray, offset: int, default_endian:
         raise ValueError(f"The 'parse_with' directive requires a custom parsing function for field '{field.name}'.")
 
     field_type = field.type
+
     if get_origin(field_type) is list:
         element_type = get_args(field_type)[0]  # Get the type of elements in the list
     else:

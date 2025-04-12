@@ -45,6 +45,10 @@ def calc_dataclass_size(instance: DebinInstance) -> int:
         field_type = field.type
         field_size = 0
 
+
+        if 'pad_before' in field.metadata:
+            total_size += field.metadata['pad_before']
+
         align_before = field.metadata.get("align_before", None)
         if align_before:
             align_mask = align_before - 1
@@ -88,6 +92,7 @@ def calc_dataclass_size(instance: DebinInstance) -> int:
             total_size += field.metadata['pad_after']
 
         align_after = field.metadata.get("align_after", None)
+
         if align_after:
             align_mask = align_after - 1
             total_size = (total_size + align_mask) & ~align_mask
